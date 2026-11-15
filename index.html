@@ -3,59 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Gerador de Senhas</title>
   
+  <title>Minha Lista de Tarefas</title>
+
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
+
 <body>
-    
   <main class="container">
 
-    <h1>Gerador de Senhas</h1>
-    <p>Crie uma senha forte e segura.</p>
+    <header>
+       <h1>Minha Lista de Tarefas</h1>
+       <p>Organize suas atividades e acompanhe seu progresso.</p> 
+    </header>
 
-    <section class="gerador">
-    
-       <label for="senha">Sua senha:</label>
-       <div class="campo-senha">
-        <input
-           type="text"
-           id="senha"
-           placeholder="Sua senha aparecerá aqui"
-           readonly
-        >
-        
-        <button id="copiar">Copiar</button>
-       </div>
-        <label for="tamanho">Tamanho da senha:</label>
-        <input type="number" id="tamanho" min="4" max="32" value="12">
+    <section class="card">
+       <form id="form-tarefa">
 
-        <h3>Tipos de caracteres</h3>
+          <input
+             type="text"
+             id="tarefa"
+             placeholder="Digite uma nova tarefa..."
+             autocomplete="off"
+          >
+          
+          <button type="submit" id="adicionar">
+            Adicionar tarefa
+          </button>
+       </form>  
 
-        <label>
-           <input type="checkbox" id="maiusculas" checked>
-           Letras maiúsculas
-        </label>
-        
-        <label>
-           <input type="checkbox" id="minusculas" checked>
-           Letras minúsculas
-        </label>
+<div class="resumo">
+    <p id="contador">Tarefas: 0</p>
+    <p id="concluidas">Concluídas: 0</p>
+</div>
 
-        <label>
-           <input type="checkbox" id="numeros" checked>
-           Números
-        </label>
+<button id="limpar-concluidas">
+    Limpar concluídas
+</button>
 
-        <label>
-           <input type="checkbox" id="simbolos" checked>
-           Símbolos
-        </label>
+       <ul id="lista-tarefas">
+          <!-- As tarefas serão adicionadas aqui pelo JavaScript -->
+       </ul>
+    </section>
 
-        <button id="gerar">Gerar Senha</button>
-    </section>  
-</main>  
+  </main>
 
 </body>
 </html>

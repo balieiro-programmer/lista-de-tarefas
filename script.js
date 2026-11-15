@@ -1,113 +1,133 @@
-//1. Capturando os elementos do HTML
-const campoSenha = document.getElementById("senha");
-const tamanhoSenha = 
-document.getElementById("tamanho");
 
-const maiusculas = document.getElementById("maiusculas");
-const minusculas = document.getElementById("minusculas");
-const numeros = document.getElementById("numeros");
-const simbolos = document.getElementById("simbolos");
+// 1. Capturando os elementos do HTML
+const formulario = document.getElementById("form-tarefa");
+const campoTarefa = document.getElementById("tarefa");
+const listaTarefas = document.getElementById("lista-tarefas");
+const contador = document.getElementById("contador");
+const concluidas = document.getElementById("concluidas");
+const limparConcluidas = document.getElementById("limpar-concluidas");
 
-const botaoGerar = document.getElementById("gerar");
-const botaoCopiar = document.getElementById("copiar");
+// 2. Atualizando os contadores
+function atualizarContadores() {
+    const total = listaTarefas.children.length;
+    const totalConcluidas = listaTarefas.querySelectorAll(".concluida").length;
 
-//2. Função para sortear um índice com segurança
-function sortearIndice(maximo) {
-   const limite = Math.floor(4294967296 / maximo) * maximo;
-   const numero = new Uint32Array(1);
-   
-   do {
-      crypto.getRandomValues(numero);
-   } while (numero[0] >= limite);
-   
-   return numero[0] % maximo;
+    contador.textContent = `Tarefas: ${total}`;
+    concluidas.textContent = `Concluídas: ${totalConcluidas}`;
 }
 
-//3. Função para misturar os caracteres 
-function embaralhar(lista) {
-   for (let i = lista.legth - 1; i > 0; i--) {
-      const j = sortearIndice(i+1);
+// 3. Salvando tarefas no navegador
+function salvarTarefas() {
+    const tarefas = [];
 
-      [lista[i], lista[j]] = [lista[j], lista[i]];
-   } 
+    listaTarefas.querySelectorAll("li").forEach(function(tarefa) {
+        const texto = tarefa.querySelector("span").textContent;
+        const concluida = tarefa.classList.contains("concluida");
 
-   return lista;
+        tarefas.push({
+            texto: texto,
+            concluida: concluida
+        });
+    });
+
+    localStorage.setItem("minhasTarefas", JSON.stringify(tarefas));
 }
 
-//4. Função principal: gerar senha
-function gerarSenha() {
-   const tamanho = Number(tamanhoSenha.value);
-   
-   if(!Number.isInteger(tamanho) || tamanho < 4 || tamanho > 32) {
-      alert("Escolha um tamanho entre 4 e 32");
-      return;
-   }
+// 4. Criando uma tarefa na tela
+function criarTarefa(textoTarefa, estaConcluida = false) {
+    const novaTarefa = document.createElement("li");
 
-   let caracteres = "";
-   const gruposSelecionados = [];
+    const texto = document.createElement("span");
+    texto.textContent = textoTarefa;
 
-   if (maiusculas.checked) {
-       const grupo = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      caracteres += grupo;
-      gruposSelecionados.push(grupo);
-   }
+    const botaoConcluir = document.createElement("button");
+    botaoConcluir.textContent = "Concluir";
 
-   if (minusculas.checked) {
-       const grupo = "abcdefghijklmnopqrstuvwxyz";
-       caracteres += grupo;
-       gruposSelecionados.push(grupo);
-   }
+    const botaoExcluir = document.createElement("button");
+    botaoExcluir.textContent = "Excluir";
+    botaoExcluir.classList.add("excluir");
 
-   if (numeros.checked) {
-       const grupo = "012456789";
-       caracteres += grupo;
-       gruposSelecionados.push(grupo);
-   }
+    if (estaConcluida) {
+        novaTarefa.classList.add("concluida");
+        botaoConcluir.textContent = "Desfazer";
+    }
 
-   if (simbolos.checked) {
-       const grupo = "!@#$%¨&*()_+{}[]:;,.<>?";
-       caracteres += grupo;
-       gruposSelecionados.push(grupo);
-   }
+    // Evento de conclusão
+    botaoConcluir.addEventListener("click", function() {
+        novaTarefa.classList.toggle("concluida");
 
-   if (gruposSelecionados.length === 0) {
-       alert("Selecione pelo menos um tipo de caractere");
-       return;
-   }
+        if (novaTarefa.classList.contains("concluida")) {
+            botaoConcluir.textContent = "Desfazer";
+        } else {
+            botaoConcluir.textContent = "Concluir";
+        }
 
-// Garante pelo menos um caractere de cada grupo escolhido
-const senha = gruposSelecionados.map(grupo => {
-   return grupo[sortearIndice(grupo.length)]; 
+        atualizarContadores();
+        salvarTarefas();
+    });
+
+    // Evento de exclusão
+    botaoExcluir.addEventListener("click", function() {
+        novaTarefa.remove();
+        atualizarContadores();
+        salvarTarefas();
+    });
+
+    novaTarefa.appendChild(texto);
+    novaTarefa.appendChild(botaoConcluir);
+    novaTarefa.appendChild(botaoExcluir);
+
+    listaTarefas.appendChild(novaTarefa);
+}
+
+// 5. Carregando tarefas salvas
+function carregarTarefas() {
+    const tarefasSalvas = localStorage.getItem("minhasTarefas");
+
+    if (tarefasSalvas === null) {
+        atualizarContadores();
+        return;
+    }
+
+    const tarefas = JSON.parse(tarefasSalvas);
+
+    tarefas.forEach(function(tarefaSalva) {
+        criarTarefa(tarefaSalva.texto, tarefaSalva.concluida);
+    });
+
+    atualizarContadores();
+}
+
+// 6. Adicionando novas tarefas
+formulario.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const textoTarefa = campoTarefa.value.trim();
+
+    if (textoTarefa === "") {
+        alert("Digite uma tarefa antes de adicionar!");
+        return;
+    }
+
+    criarTarefa(textoTarefa);
+
+    atualizarContadores();
+    salvarTarefas();
+
+    campoTarefa.value = "";
+    campoTarefa.focus();
 });
 
-// Completa a senha até atingir o tamanho escolhido 
-while (senha.length < tamanho) {
+limparConcluidas.addEventListener("click", function() {
+    const tarefasConcluidas = listaTarefas.querySelectorAll(".concluida");
 
-senha.push(caracteres[sortearIndice(caracteres.length)]);
-}
+    tarefasConcluidas.forEach(function(tarefa) {
+        tarefa.remove();
+    });
 
-// Mistura os caracteres para evitar uma ordem previsível
-embaralhar(senha);
+    atualizarContadores();
+    salvarTarefas();
+});
 
-campoSenha.value = senha.join("");
-}
-
-//5. Função para copiar a senha
-async function copiarSenha(){
-  if (campoSenha.value === "") {
-      alert("Gere uma senha primeiro!");
-      return;
-  }
-
-  try {
-     await navigator.clipboard.writeText(campoSenha.value);
-     alert("Senha copiada com sucesso!");
-  } catch (erro) {
-      alert("Não foi possível copiar. Verifique a permissão do navegador.");
-  }
-}
-
-//6. Eventos dos botões
-botaoGerar.addEventListener("click", gerarSenha);
-botaoCopiar.addEventListener("click", copiarSenha);
-
+// 7. Executando o carregamento ao abrir a página
+carregarTarefas();
